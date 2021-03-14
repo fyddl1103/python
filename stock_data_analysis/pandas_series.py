@@ -165,7 +165,7 @@ dtype: float64
 >>> s.describe()
 count     8.000000
 mean      5.537500
-std       2.946639
+std       2.946639dd
 min       2.000000
 25%       3.500000
 50%       4.900000
@@ -188,4 +188,5 @@ Text(0.5, 1.0, 'ELLIOTT_WAVE')
 ([<matplotlib.axis.YTick object at 0x0000015437195C70>, <matplotlib.axis.YTick object at 0x0000015437195850>, <matplotlib.axis.YTick object at 0x000001543718E670>, <matplotlib.axis.YTick object at 0x00000154391E2B80>, <matplotlib.axis.YTick object at 0x00000154391EB0D0>, <matplotlib.axis.YTick object at 0x00000154391EB5E0>, <matplotlib.axis.YTick object at 0x00000154391EBAF0>, <matplotlib.axis.YTick object at 0x00000154391E2670>], [Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, ''), Text(0, 0, '')])
 >>> plt.grid(True)
 >>> plt.show()
->>> 
+
+
