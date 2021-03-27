@@ -131,19 +131,65 @@ class DBUpdater:
         """
         네이버 금융에서 읽어온 주식 시세를 DB에 REPLACE
         """
+        with self.conn.cursor() as curs:
+            for r in df.itertuples():
+                sql = f"REPLACE INTO daily_price VALUES ('{code}', "\
+                    f"'{r.date}', {r.open}, {r.high}, {r.low}, {r.close}, "\
+                    f"{r.diff}, {r.volume})"
+                curs.execute(sql)
+            self.conn.commit()
+            print('[{}]'  # {:04d} {} ({}) : {} rows > REPLACE INTO daily_'\
+                  'price [OK]'.format(datetime.now().strftime('%Y-%m-%d'\
+                                                              ' %H:%M'), num+1, company, code, len(df)))
 
     def update_daily_price(self, pages_to_fetch):
         """
         KRX 상장법인의 주식 시세를 네이버로부터 읽어서 DB에 업데이트
         """
+        for idx, code in enumerate(self.codes):
+            df = self.read_naver(code, self.codes[code], pages_to_fetch)
+            if df is None:
+                continue
+            self.replace_into_db(df, idx, code, self.codes[code])
 
     def execute_daily(self):
         """
         실행 즉시 및 매일 오후 다섯시에 daily_price 테이블 업데이트
         """
+        self.update_comp_info()
+        try:
+            with open('config.json', 'r') as in_file:
+                config = json.load(in_file)
+                pages_to_fetch = config['pages_to_fetch']
+        except FileNotFoundError:
+            with open('config.json', 'w') as out_file:
+                pages_to_fetch = 100
+                config = {'pages_to_fetch': 1}
+                json.dump(config, out_file)
+        self.update_daily_price(pages_to_fetch)
+
+        tmnow = datetime.now()
+        # calendar.monthrange(2020, 1) > return (1,31) > [1] ; 해당 월의 마지막 날을 알아내기 위함
+        lastday = calender.monthrange(tmnow.year, tmnow.month)[1]
+        if tmnow.month == 12 and tmnow.day == lastday:
+            tmnext == tmnow.replace(
+                year=tmnow.year+1, month=1, day=1, hour=17, monute=0, second=0)
+        elif tmnow.day == lastday:
+            tmnext == tmnow.replace(
+                month=tmnow.month+1, day=1, hour=17, monute=0, second=0)
+        else:
+            tmnext == tmnow.replace(
+                day=tmnow.day+1, hour=17, monute=0, second=0)
+
+        tmdiff = tmnext - tmnow
+        secs = tmdiff.seconds
+
+        t = Timer(secs, self.execute_daily)
+        print("Waiting for next update ({}) ...".format(
+            tmnext.strftime('%Y-%m-%d %H:%M')))
+        t.start()
 
 
 if __name__ == '__main__':
     dbu = DBUpdater()
-    # dbu.execute_daily()
-    dbu.update_comp_info()
+    dbu.execute_daily()
